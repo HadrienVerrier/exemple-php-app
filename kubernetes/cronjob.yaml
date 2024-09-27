@@ -1,0 +1,32 @@
+# write cronjob who mount the volume and download random image from internet and replace the image in the volume
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cronjob-app-php
+  labels:
+    app.kubernetes.io/name: app-php
+    app.kubernetes.io/component: download-image-cronjob
+spec:
+  schedule: "*/1 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: app-php
+            app.kubernetes.io/component: download-image-cronjob
+        spec:
+          containers:
+          - name: cronjob-app-php
+            image: busybox
+            command: ["/bin/sh", "-c"]
+            volumeMounts:
+            - name: images-volume
+              mountPath: /mnt/images
+            args:
+            - wget -O /mnt/images/image.jpg https://picsum.photos/200/300
+          restartPolicy: OnFailure
+          volumes:
+          - name: images-volume
+            persistentVolumeClaim:
+              claimName: images-pvc
