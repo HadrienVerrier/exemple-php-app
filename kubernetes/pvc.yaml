@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: images-pvc
+spec:
+  storageClassName: ziosting-volume
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi

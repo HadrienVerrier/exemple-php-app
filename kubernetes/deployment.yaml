@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: deploiement-app-php
+  labels:
+    app.kubernetes.io/name: app-php
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: app-php
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: app-php
+    spec:
+      affinity: 
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 1
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values: 
+                  - php-app
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: php-app-container
+        image: hadv83/php-app:v1
+        imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 30
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        ports:
+        - name: http
+          containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1024Mi
+        volumeMounts:
+        - name: images
+          mountPath: /app/images
+        env:
+        - name: DB_HOST
+          value: my-db-pxc-db-pxc.formation-gestonline-db.svc.cluster.local
+        - name: DB_USER
+          value: root
+        - name: DB_PASS
+          value: "A*rnTYxJuum)rAO5b"
+        - name: DB_NAME
+          value: database
+      volumes:
+      - name: images
+        persistentVolumeClaim:
+          claimName: images-pvc
